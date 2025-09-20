@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My blogs</title>
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'logout_user' %}">Logout</a></p>
+    {% endif %}
+
+    <h1>My Blogs</h1>  
+
+    {% for post in posts %}
+        <h2>{{ post.title }}</h2>
+        <p><strong>Author:</strong> {{ post.author }} | <em>{{ post.created_at }}</em></p>
+        <p>{{ post.content }}</p>
+
+        <h4>Comments:</h4>
+
+        {% for comment in post.comment_set.all %}
+            {% if not comment.parent %}
+                <p><strong>{{ comment.user.username }}</strong>: {{ comment.comment }}</p>
+
+              
+                {% for reply in comment.replies.all %}
+                    <div style="margin-left: 30px;">
+                        <p><strong>{{ reply.user.username }}</strong>: {{ reply.comment }}</p>
+                    </div>
+                {% endfor %}
+
+                
+                {% if user.is_authenticated %}
+                    <div style="margin-left: 30px;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                            <textarea name="comment_text" placeholder="Write a reply..."></textarea>
+                            <button type="submit">Reply</button>
+                        </form>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        
+        {% if user.is_authenticated %}
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="post_id" value="{{ post.id }}">
+                <textarea name="comment_text" placeholder="Write a comment..."></textarea>
+                <button type="submit">Post Comment</button>
+            </form>
+        {% else %}
+            <p><a href="{% url 'login_page' %}">Login</a> to comment.</p>
+        {% endif %}
+        <hr>
+    {% endfor %}
+</body>
+</html>
